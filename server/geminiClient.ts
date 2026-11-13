@@ -1,8 +1,10 @@
+process.env.GOOGLE_GENAI_API_VERSION = 'v1beta';
 import { GoogleGenAI } from '@google/genai';
 
 let cachedClient: GoogleGenAI | null = null;
 
 export function getGeminiClient(): GoogleGenAI {
+  process.env.GOOGLE_GENAI_API_VERSION = 'v1beta';
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey.trim() === '' || apiKey === 'MY_GEMINI_API_KEY') {
     throw new Error(
@@ -14,6 +16,7 @@ export function getGeminiClient(): GoogleGenAI {
       apiKey,
       apiVersion: 'v1beta',
       httpOptions: {
+        baseUrl: 'https://generativelanguage.googleapis.com/',
         apiVersion: 'v1beta',
         headers: {
           'User-Agent': 'aistudio-build',

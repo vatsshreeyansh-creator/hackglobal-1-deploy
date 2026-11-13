@@ -1,3 +1,4 @@
+process.env.GOOGLE_GENAI_API_VERSION = 'v1beta';
 import 'dotenv/config';
 import express from 'express';
 import multer from 'multer';
