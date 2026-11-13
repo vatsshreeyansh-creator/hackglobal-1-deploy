@@ -654,21 +654,45 @@ async function startServer() {
             ? thinkingLevel
             : ThinkingLevel.HIGH;
 
+        const thinkingCfg =
+          modelName.includes('gemini-4') || modelName.includes('gemini-3')
+            ? { thinkingLevel: effectiveThinking }
+            : undefined;
+
+        const requestConfig: Record<string, unknown> = {
+          systemInstruction: OMNIAGENT_SYSTEM_INSTRUCTION,
+          tools: [{ functionDeclarations: omniAgentToolDeclarations }],
+        };
+        if (thinkingCfg) {
+          requestConfig.thinkingConfig = thinkingCfg;
+        }
+
         return withRetry(
           async () => {
             const collectedModelParts: Part[] = [];
             const collectedFunctionCalls: FunctionCall[] = [];
             let roundTextEmitted = false;
 
-            const stream = await ai.models.generateContentStream({
-              model: modelName,
-              contents: activeContents,
-              config: {
-                systemInstruction: OMNIAGENT_SYSTEM_INSTRUCTION,
-                thinkingConfig: { thinkingLevel: effectiveThinking },
-                tools: [{ functionDeclarations: omniAgentToolDeclarations }],
-              },
-            });
+            let stream;
+            try {
+              stream = await ai.models.generateContentStream({
+                model: modelName,
+                contents: activeContents,
+                config: requestConfig,
+              });
+            } catch (streamErr: unknown) {
+              const errMsg = streamErr instanceof Error ? streamErr.message : String(streamErr);
+              if (errMsg.includes('Thinking level is not supported') && requestConfig.thinkingConfig) {
+                delete requestConfig.thinkingConfig;
+                stream = await ai.models.generateContentStream({
+                  model: modelName,
+                  contents: activeContents,
+                  config: requestConfig,
+                });
+              } else {
+                throw streamErr;
+              }
+            }
 
             for await (const chunk of stream) {
               if (isCancelled()) break;
