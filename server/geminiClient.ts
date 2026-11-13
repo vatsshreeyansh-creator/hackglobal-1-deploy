@@ -12,7 +12,9 @@ export function getGeminiClient(): GoogleGenAI {
   if (!cachedClient) {
     cachedClient = new GoogleGenAI({
       apiKey,
+      apiVersion: 'v1beta',
       httpOptions: {
+        apiVersion: 'v1beta',
         headers: {
           'User-Agent': 'aistudio-build',
         },
