@@ -669,9 +669,9 @@ async function startServer() {
 
         return withRetry(
           async () => {
-            const collectedModelParts: Part[] = [];
-            const collectedFunctionCalls: FunctionCall[] = [];
+            let roundText = '';
             let roundTextEmitted = false;
+            const functionCallMap = new Map<string, FunctionCall>();
 
             let stream;
             try {
@@ -699,6 +699,7 @@ async function startServer() {
               if (chunk.text) {
                 roundTextEmitted = true;
                 emittedAnyText = true;
+                roundText += chunk.text;
                 accumulatedMarkdown += chunk.text;
                 writeSseEvent(res, 'markdown_delta', { text: chunk.text });
               }
@@ -706,15 +707,28 @@ async function startServer() {
               const candidateParts = chunk.candidates?.[0]?.content?.parts;
               if (candidateParts) {
                 for (const part of candidateParts) {
-                  collectedModelParts.push(part);
-                  if (part.functionCall) {
-                    collectedFunctionCalls.push(part.functionCall);
+                  if (part.functionCall && part.functionCall.name) {
+                    const key = `${part.functionCall.name}:${JSON.stringify(part.functionCall.args || {})}`;
+                    functionCallMap.set(key, part.functionCall);
                   }
                 }
               }
             }
 
-            return { collectedModelParts, collectedFunctionCalls, roundTextEmitted };
+            const uniqueFunctionCalls = Array.from(functionCallMap.values());
+            const cleanModelParts: Part[] = [];
+            if (roundText) {
+              cleanModelParts.push({ text: roundText });
+            }
+            for (const fc of uniqueFunctionCalls) {
+              cleanModelParts.push({ functionCall: fc });
+            }
+
+            return {
+              collectedModelParts: cleanModelParts,
+              collectedFunctionCalls: uniqueFunctionCalls,
+              roundTextEmitted,
+            };
           },
           3,
           1500,
@@ -729,7 +743,7 @@ async function startServer() {
         );
       };
 
-      for (let round = 0; round < 4; round++) {
+      for (let round = 0; round < 2; round++) {
         if (isCancelled()) break;
         let roundResult;
         try {
