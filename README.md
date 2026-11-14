@@ -1,4 +1,4 @@
-# Remix OmniAgent
+#  OmniAgent
 
 Remix OmniAgent is a multimodal AI engineering workbench that helps teams analyze uploaded technical artifacts, ask engineering questions grounded in local file context, and turn them into structured execution plans and automation actions. It combines a local artifact sandbox, vector search, and Gemini-powered reasoning into one interface for technical troubleshooting and workflow generation.
 
