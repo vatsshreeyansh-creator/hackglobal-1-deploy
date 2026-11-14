@@ -1,65 +1,142 @@
 # Remix OmniAgent
 
-Remix OmniAgent is a multimodal AI engineering copilot built for HackGlobal. It helps teams turn project files and technical questions into grounded analysis, execution plans, and staged automation actions from a single workbench.
+Remix OmniAgent is a multimodal AI engineering workbench that helps teams analyze uploaded technical artifacts, ask engineering questions grounded in local file context, and turn them into structured execution plans and automation actions. It combines a local artifact sandbox, vector search, and Gemini-powered reasoning into one interface for technical troubleshooting and workflow generation.
 
-## What it does
+## Overview
 
-- Upload and inspect technical artifacts, including source files, documents, spreadsheets, images, and audio.
-- Index uploaded content for semantic retrieval and use relevant excerpts to ground AI responses.
-- Chat with the Gemini-powered agent, with standard and deep reasoning modes and streamed responses.
-- Generate execution plans and track their steps in the workbench.
-- Stage webhook actions and scripts, then simulate a dispatch or send a request to an HTTP(S) endpoint.
-- Review ingestion, retrieval, reasoning, and action logs; export a session report in Markdown.
-- Manage session artifacts in a sandbox, including previewing, deleting, or purging them.
+This project is a TypeScript-based app built with React, Vite, and Express. It allows users to upload documents, code, spreadsheets, PDFs, images, and audio into a private sandbox, then query that content through a streaming agent. The system stores indexed chunks, retrieves the most relevant context, and uses Gemini to produce deep technical responses, execution blueprints, and staged automation hooks.
 
-## Requirements
+## Problem it solves
 
-- Node.js with npm
-- A Google Gemini API key for AI responses and Gemini-powered embeddings
+Most engineering teams work across fragmented artifacts: specs, diagrams, logs, CSV data, source code, and meeting notes. Those files often live in different places and are difficult to reason about together. Remix OmniAgent solves this by creating a single secure workspace where artifacts can be ingested, semantically searched, and analyzed with AI in context.
 
-## Run locally
+Instead of giving shallow summaries, the app is designed to produce actionable outputs such as:
 
-1. Clone the repository and install dependencies:
+- architecture and bottleneck analysis
+- execution plans with steps and effort estimates
+- code or workflow suggestions grounded in uploaded files
+- webhook automation staging for downstream systems
+- session-based technical audit reports
 
-   ```bash
-   npm install
-   ```
+## How it works
 
-2. Copy `.env.example` to `.env` and set your API key:
+1. Users upload files into the sandbox.
+2. The server ingests and validates each artifact.
+3. Text and structured content are chunked and indexed for retrieval.
+4. The app runs a semantic vector search against the current session index.
+5. Relevant matches are sent to the Gemini model alongside the user prompt.
+6. The AI responds with streamed reasoning, execution traces, plans, and action suggestions.
+7. Generated execution plans and automation hooks are stored inside the session state for review.
 
-   ```env
-   GEMINI_API_KEY=your_gemini_api_key
-   ```
+The application exposes a session-based API for:
 
-   The application can also read `GEMINI_MODEL` and `GEMINI_FALLBACK_MODEL` to override the default Gemini models.
+- artifact upload and ingestion
+- session reset and cleanup
+- vector-based retrieval
+- execution plan updates
+- webhook dispatch simulation or live HTTP dispatch
+- SSE-based streaming chat interactions
 
-3. Start the development server:
+## Architecture diagram
 
-   ```bash
-   npm run dev
-   ```
+```text
++-------------------+      +----------------------+
+| User / Browser   | ---> | React Frontend       |
+|                  |      | (Vite + TypeScript)  |
++-------------------+      +----------+-----------+
+                                        |
+                                        v
+                            +----------------------+
+                            | Express API Server   |
+                            | /api/* endpoints     |
+                            +----------+-----------+
+                                       |
+            +--------------------------+--------------------------+
+            |                         |                         |
+            v                         v                         v
+ +-------------------+    +---------------------+    +----------------------+
+ | Artifact Sandbox  |    | Vector Index / RAG  |    | Gemini API           |
+ | File validation   |    | semantic retrieval  |    | reasoning + tools     |
+ | chunking + logs   |    | session search      |    +----------------------+
+ +-------------------+             +---------------------+
+                                        |
+                                        v
+                            +----------------------+
+                            | Execution Plans /    |
+                            | Webhook Actions      |
+                            +----------------------+
+```
 
-   Open the local URL printed by the server (the default port is `3000`).
+## Setup steps
 
-## Available scripts
+1. Install dependencies:
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the Express server with Vite development middleware. |
-| `npm run build` | Build the frontend for production. |
-| `npm run preview` | Preview the Vite production build. |
-| `npm run start` | Start the application server. |
-| `npm run lint` | Run TypeScript type checking without emitting files. |
+```bash
+npm install
+```
 
-For production serving, build the frontend first with `npm run build`, then start the server with `npm run start` and configure the required environment variables in your hosting environment.
+2. Create environment variables from `.env.example`:
 
-## Project structure
+```bash
+cp .env.example .env
+```
 
-- `src/` — React workbench, UI components, and client-side types.
-- `server.ts` — Express API, file upload handling, and streamed agent endpoint.
-- `server/` — Gemini client, artifact ingestion, retrieval/indexing, sample data, and agent tools.
-- `public/` — Static assets.
+3. Add your Gemini key in `.env`:
 
-## Deployment
+```env
+GEMINI_API_KEY="your_gemini_api_key"
+APP_URL="your_app_url"
+```
 
-The project is configured for Vercel, and the deployed app is available at [hackglobal-1-deploy.vercel.app](https://hackglobal-1-deploy.vercel.app). Set `GEMINI_API_KEY` as a deployment secret before using Gemini-powered features.
+4. Start the app:
+
+```bash
+npm run dev
+```
+
+5. Open the local app at the URL shown by the server (default is usually `http://localhost:3000`).
+
+## Production build
+
+```bash
+npm run build
+npm run start
+```
+
+## Tech stack
+
+- TypeScript
+- React
+- Vite
+- Express
+- Google Gemini API
+- Tailwind CSS
+- Multer for uploads
+- xlsx for spreadsheet support
+- React Markdown for rendering
+
+## Key features
+
+- Multi-format artifact ingestion
+- Local session sandbox with logs and state tracking
+- Semantic vector retrieval using indexed chunks
+- Gemini-powered chat with streaming responses
+- Execution plans and workflow blueprints
+- Staged webhook action handling
+- Markdown session export report
+- Security-oriented session purge and artifact removal logic
+
+## Credits
+
+This project uses the following technologies and services:
+
+- Google Gemini for LLM reasoning and embedding workflows
+- Vite for frontend tooling
+- React for the user interface
+- Express for the backend API and file-serving layer
+- Tailwind CSS for styling
+- Node.js and TypeScript for the application runtime
+
+## Notes
+
+The repository is configured as a deployable TypeScript app and is intended for AI-assisted engineering analysis and automation tasks. The app emphasizes grounded, artifact-aware responses rather than generic chat output, which makes it useful for technical audits, architecture work, and workflow planning.
