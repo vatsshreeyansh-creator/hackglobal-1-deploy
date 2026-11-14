@@ -82,14 +82,14 @@ The application exposes a session-based API for:
 
 ```mermaid
 flowchart LR
-    U["Operator / Browser<br/>3-Pane React + Vite UI"] -->|Multipart Upload / SSE| NX["Vultr Cloud Compute<br/>Nginx SSE Proxy (:80/:443)"]
-    NX --> API["Express API Server<br/>server.ts (:3000)"]
+    U["Operator / Browser<br/>3-Pane React + Vite UI"] -->|Multipart Upload & SSE| NX["Vultr Cloud Compute<br/>Nginx SSE Proxy - Port 80 and 443"]
+    NX --> API["Express API Server<br/>server.ts - Port 3000"]
     API --> ING["Multi-Modal Ingestion<br/>Validation, Chunking, XLSX"]
     ING --> VEC["Local Vector Sandbox<br/>gemini-embedding-2 + Lexical Fallback"]
-    API --> GEM["Hybrid Reasoning Layer<br/>gemini-4-hydrogen (HIGH / XHIGH)"]
+    API --> GEM["Hybrid Reasoning Layer<br/>gemini-4-hydrogen - HIGH and XHIGH"]
     VEC -->|Top-K Cosine Matches| GEM
     GEM <-->|Function Calling Loop| TOOLS["Agentic Tools<br/>Vector Search, Schema, Plans, Webhooks"]
-    TOOLS -->|Storage Dispatch (SigV4)| VOS["Vultr Object Storage<br/>S3-Compatible Bucket"]
+    TOOLS -->|SigV4 Storage Dispatch| VOS["Vultr Object Storage<br/>S3-Compatible Bucket"]
     TOOLS -->|SSE Stream| U
 ```
 
@@ -285,17 +285,7 @@ npm run start
 │       ├── MarkdownRenderer.tsx       # GFM markdown, tabular figures & copy/save code blocks
 │       ├── ArtifactPreviewModal.tsx   # Code, spreadsheet & wireframe inspection modal
 │       └── PrivacyModal.tsx           # Local sandbox security summary & memory purge dialog
-└── public/assets/demo/                # Demo recording & workbench screenshots
 ```
-
----
-
-## Demo media
-
-- **Walkthrough Recording**: [`Screen_Recording_2026-11-13_191121_e0903997.mp4`](public/assets/demo/Screen_Recording_2026-11-13_191121_e0903997.mp4)
-- **Captured Artifacts**:
-  - [`Screenshot_2026-11-13_190813_a48b2599.png`](public/assets/demo/Screenshot_2026-11-13_190813_a48b2599.png)
-  - [`Screenshot_2026-11-13_210550_8702993b.png`](public/assets/demo/Screenshot_2026-11-13_210550_8702993b.png)
 
 ---
 
